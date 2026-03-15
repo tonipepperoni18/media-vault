@@ -1,0 +1,7 @@
+
+POST http://localhost:4040/api/titles
+Content-Type: application/json
+
+{
+    "upc": "1234567890"
+}
