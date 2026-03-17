@@ -1,7 +1,7 @@
 import { fetchUPCData } from "../services/upcService.js"
 import { lightCleanTitle, extractFormat } from "../services/upcService.js";
 import { insertTitle } from "../services/upcService.js";
-
+import { pool } from "../config/db.js";
 
 
 //POST /api/titles
@@ -84,4 +84,112 @@ export const createTitle = async (req, res) => {
 
 
 
+}
+
+//GET /api/titles
+
+export const getAllTitles = async (req, res) => {
+
+    pool.query(
+        'SELECT * FROM titles ORDER BY id ASC',
+    (error, results) => {
+        if(error){
+            throw error
+        }
+
+        res.status(200).json(results.rows)
+    })
+
+
+
+}
+
+// GET /api/titles/:id
+
+export const getTitleById = async (req, res) => {
+
+    const  { upc } = req.params
+
+    pool.query('SELECT * FROM titles WHERE barcode = $1', [upc], (error, results) => {
+        if(error) {
+            throw error
+        }
+
+       if (results.rows.length === 0) {
+            return res.status(404).json({
+            message: `No title found with UPC ${upc}`
+        })
+      }
+        res.status(200).json(results.rows)
+    })
+
+}
+
+
+// PATCH /api/titles/:id
+
+export const patchTitle = async (req, res) => {
+
+    const { upc } = req.params
+
+    const {title, media_type, release_year, format, notes, rip_status, poster_url } = req.body
+
+   const updatedTitle =  pool.query(
+        `UPDATE titles 
+         SET title = $1,  
+             release_year = $2, 
+             format = $3, 
+             notes = $4, 
+             rip_status = $5, 
+             poster_url = $6
+             WHERE barcode = $7
+             RETURNING *` ,          
+        [title, release_year, format, notes, rip_status, poster_url, upc],
+        (error, results) => {
+            if(error) {
+                throw error
+            }
+
+            if (results.rows.length === 0){
+                return res.status(404).json({
+                    message: `No title found with UPC ${upc}`
+                })
+            }
+            res.status(200).json({
+                message: `Title ${updatedTitle} updated.`,
+                updatedTitle: results.rows[0]
+            })
+        }
+    )
+
+
+}
+
+//DELETE /api/titles/:id
+
+export const deleteTitle = async (req, res) => {
+
+    const { upc } = req.params
+
+    pool.query(
+        "DELETE FROM titles WHERE barcode = $1 RETURNING *",
+        [upc],
+        (error, results) => {
+
+            if (error) {
+                throw error
+            }
+
+            if (results.rows.length === 0) {
+                return res.status(404).json({
+                    message: `No title found with UPC ${upc}`
+                })
+            }
+
+            res.status(200).json({
+                message: `Title deleted with UPC: ${upc}`,
+                deletedTitle: results.rows[0]
+            })
+        }
+    )
 }
