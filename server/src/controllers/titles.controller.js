@@ -28,6 +28,7 @@ export const createTitle = async (req, res) => {
 
     const upcResult = await fetchUPCData(normalizedUPC)
 
+    console.log("upcResult:", upcResult) 
     if(!upcResult) {
         return res.status(404).json({
             message: "No product found for that UPC"
@@ -36,7 +37,7 @@ export const createTitle = async (req, res) => {
 
     //get raw title
 
-    const rawTitle = upcResult.title;
+    const rawTitle = upcResult.name;
 
     if(!rawTitle) {
         return res.status(404).json({

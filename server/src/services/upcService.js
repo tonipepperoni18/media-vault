@@ -1,11 +1,23 @@
 import { pool } from "../config/db.js"
+import dotenv from "dotenv"
+dotenv.config()
 
 export const fetchUPCData = async (upc) => {
-    //mock data while testing
-    return {
-        barcode: upc, 
-        title: "THE DARK KNIGHT BLU-RAY + DIGITAL COPY",
+  try {
+    const apiKey = process.env.GO_UPC
+    const response = await fetch(`https://go-upc.com/api/v1/code/${upc}?key=${apiKey}`)
+
+    if(!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
+
+    const data = await response.json()
+    console.log(data)
+    return data.product
+  } catch (error) {
+    console.error("Fetch error:", error.message)
+    return null
+  }
 }
 
 // services/titleCleaner.js

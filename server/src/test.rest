@@ -1,3 +1,5 @@
-DELETE   http://localhost:4040/api/titles/1234567890
+POST  http://localhost:4040/api/titles
 Content-Type: application/json
-
+{
+    "upc": "883929524112"
+}
